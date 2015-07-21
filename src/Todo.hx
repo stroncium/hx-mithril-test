@@ -26,7 +26,7 @@ class Todo{
   static function run(){
     var todo = new Todo();
     Mithril.routeMode = 'hash';
-    Mithril.route(js.Browser.document.getElementById('todoapp'), '/', {
+    Mithril.route(js.Browser.document.body, '/', {
       '/':todo,
       '/:filter':todo,
     });
@@ -136,10 +136,10 @@ class Todo{
   var focused = false;
 
   function view(){
-    return [
-      m('header#header', [
+    return m('section.todoapp', [
+      m('header.header', [
         m('h1', 'todos'),
-        m('input#new-todo[placeholder="What needs to be done?"]', {
+        m('input.new-todo[placeholder="What needs to be done?"]', {
           onkeyup: inputWatcher(add, clearTitle),
           value: title,
           oninput: setAttr('value', title),
@@ -151,30 +151,30 @@ class Todo{
           },
         })
       ]),
-      m('section#main', {
+      m('section.main', {
         style: {display: list.length == 0 ? 'none' : ''},
       }, [
-        m('input#toggle-all[type=checkbox]', {
+        m('input.toggle-all[type=checkbox]', {
           onclick: completeAll,
           checked: allCompleted(),
         }),
-        m('ul#todo-list', [for(i in 0...list.length) if(isVisible(list[i])) viewTodo(list[i], i)]),
+        m('ul.todo-list', [for(i in 0...list.length) if(isVisible(list[i])) viewTodo(list[i], i)]),
       ]),
       list.length == 0 ? null : viewFooter(),
-    ];
+    ]);
   }
 
   function viewFooter(){
     var compl = countCompleted();
     var active = list.length - compl;
 
-    return m('footer#footer', [
-      m('span#todo-count', [
+    return m('footer.footer', [
+      m('span.todo-count', [
         m('strong', '$active'),
         active == 1 ? ' item' : ' items',
         ' left',
       ]),
-      m('ul#filters',[
+      m('ul.filters',[
         m('li', m('a[href=/]', {
             config: Mithril.route,
             className: filter == '' ? 'selected' : '',
@@ -191,7 +191,7 @@ class Todo{
           }, 'Completed')
         ),
       ]),
-      compl == 0 ? null : m('button#clear-completed', {onclick: clearCompleted}, 'Clear completed'),
+      compl == 0 ? null : m('button.clear-completed', {onclick: clearCompleted}, 'Clear completed'),
     ]);
   }
 
