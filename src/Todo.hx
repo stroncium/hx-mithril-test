@@ -21,7 +21,7 @@ class Todo{
   }
 
   function controller(){
-    filter = Mithril.routeParam('filter');
+    return {filter: Mithril.routeParam('filter')};
   }
 
   public inline function save(){

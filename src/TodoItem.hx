@@ -16,20 +16,18 @@ class TodoItem{
     save();
   }
 
-  var editing:Bool;
-
   function edit(){
-    editing = true;
+    todo.editing = true;
   }
 
   function doneEditing(){
-    editing = false;
+    todo.editing = false;
     todo.title = title = title.trim();
     save();
   }
 
   function cancelEditing(){
-    editing = false;
+    todo.editing = false;
     title = todo.title;
   }
 
@@ -44,7 +42,7 @@ class TodoItem{
   public function view(){
     var classes = '';
     if(todo.completed) classes+= ' completed';
-    if(editing) classes+= ' editing';
+    if(todo.editing) classes+= ' editing';
 
     return m('li', {className:classes}, [
       m('.view', [
@@ -55,18 +53,18 @@ class TodoItem{
         m('label', {ondblclick: edit}, todo.title),
         m('button.destroy', {onclick:remove}),
       ]),
-      m('input.edit', {
+      todo.editing ? m('input.edit', {
         value: title,
         onkeyup: Todo.inputWatcher(doneEditing, cancelEditing),
         oninput: setAttr('value', title),
         onblur: doneEditing,
         config: function(el){
-          if(editing){
+          if(todo.editing){
             el.focus();
             el.selectionStart = el.value.length;
           }
         },
-      }),
+      }) : null,
     ]);
   }
 }
