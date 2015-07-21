@@ -17,3 +17,8 @@ bin/frontend/todo.js: src/Todo.hx
 clean:
 	rm -f bin/server.js bin/frontend/todo.js
 
+run: all
+	node bin/server.js
+
+.PHONY: client server run clean
+
