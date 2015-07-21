@@ -32,7 +32,6 @@ class Todo{
     });
   }
 
-
   var list:Array<TodoItem>;
   var title:String = '';
   var filter:String;
@@ -43,9 +42,7 @@ class Todo{
 
   function controller(){
     filter = Mithril.routeParam('filter');
-    if(filter == null) filter = '';
   }
-
 
   inline function save(){
     Storage.put(list);
@@ -63,14 +60,6 @@ class Todo{
   function complete(todo){
     todo.completed = !todo.completed;
     save();
-  }
-
-  function isVisible(todo):Bool{
-    return switch filter{
-      case 'active': !todo.completed;
-      case 'completed': todo.completed;
-      case _: true;
-    }
   }
 
   function edit(todo){
@@ -135,7 +124,15 @@ class Todo{
   }
   var focused = false;
 
-  function view(){
+  function view(state){
+    var todos = switch state.filter{
+      case 'active':
+        [for(i in 0...list.length) if(!list[i].completed) viewTodo(list[i], i)];
+      case 'completed':
+        [for(i in 0...list.length) if(list[i].completed) viewTodo(list[i], i)];
+      case _:
+        [for(i in 0...list.length) viewTodo(list[i], i)];
+    }
     return m('section.todoapp', [
       m('header.header', [
         m('h1', 'todos'),
@@ -158,7 +155,7 @@ class Todo{
           onclick: completeAll,
           checked: allCompleted(),
         }),
-        m('ul.todo-list', [for(i in 0...list.length) if(isVisible(list[i])) viewTodo(list[i], i)]),
+        m('ul.todo-list', todos),
       ]),
       list.length == 0 ? null : viewFooter(),
     ]);
