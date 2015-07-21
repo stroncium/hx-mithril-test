@@ -1,26 +1,6 @@
 import Mithril.*;
 using StringTools;
 
-typedef TodoItem = {
-  title:String,
-  ?previousTitle:String,
-  ?completed:Bool,
-  ?editing:Bool,
-}
-
-class Storage{
-  static var ID = 'hx-mithril-todo';
-  static var DEFAULT = [];
-  public static function get():Dynamic{
-    var json = js.Browser.getLocalStorage().getItem(ID);
-    return json == null ? DEFAULT : haxe.Json.parse(json);
-  }
-
-  public static function put(d:Dynamic){
-    js.Browser.getLocalStorage().setItem(ID, haxe.Json.stringify(d));
-  }
-}
-
 @:expose('Todo')
 class Todo{
   static function run(){
@@ -32,7 +12,7 @@ class Todo{
     });
   }
 
-  var list:Array<TodoItem>;
+  var list:Array<model.Todo>;
   var title:String = '';
   var filter:String;
 
@@ -44,7 +24,7 @@ class Todo{
     filter = Mithril.routeParam('filter');
   }
 
-  inline function save(){
+  public inline function save(){
     Storage.put(list);
   }
 
@@ -54,38 +34,17 @@ class Todo{
       list.push({title:title});
       save();
     }
-    title = '';
-  }
-
-  function complete(todo){
-    todo.completed = !todo.completed;
-    save();
-  }
-
-  function edit(todo){
-    todo.previousTitle = todo.title;
-    todo.editing = true;
-  }
-
-  function doneEditing(todo:TodoItem, index){
-    todo.editing = false;
-    todo.title = todo.title.trim();
-    if(todo.title == '') list.splice(index, 1);
-    save();
-  }
-
-  function cancelEditing(todo){
-    todo.title = todo.previousTitle;
-    todo.previousTitle = null;
-    todo.editing = false;
+    this.title = '';
   }
 
   function clearTitle(){
     title = '';
   }
 
-  function remove(index){
-    list.splice(index, 1);
+  public function remove(todo){
+    var idx = list.indexOf(todo);
+    if(idx == -1) throw 'wtf';
+    list.splice(idx, 1);
     save();
   }
 
@@ -113,7 +72,7 @@ class Todo{
 
   static inline var ENTER_KEY = 13;
   static inline var ESC_KEY = 27;
-  static function inputWatcher(onEnter, onEscape){
+  public static function inputWatcher(onEnter, onEscape){
     return function(e){
       switch e.keyCode{
         case ENTER_KEY: onEnter();
@@ -125,14 +84,12 @@ class Todo{
   var focused = false;
 
   function view(state){
-    var todos = switch state.filter{
-      case 'active':
-        [for(i in 0...list.length) if(!list[i].completed) viewTodo(list[i], i)];
-      case 'completed':
-        [for(i in 0...list.length) if(list[i].completed) viewTodo(list[i], i)];
-      case _:
-        [for(i in 0...list.length) viewTodo(list[i], i)];
+    var localList = switch state.filter{
+      case 'active': [for(i in list) if(!i.completed) i];
+      case 'completed': [for(i in list) if(i.completed) i];
+      case _: list;
     }
+    var todos = [for(todo in localList) new TodoItem(todo, this)];
     return m('section.todoapp', [
       m('header.header', [
         m('h1', 'todos'),
@@ -189,36 +146,6 @@ class Todo{
         ),
       ]),
       compl == 0 ? null : m('button.clear-completed', {onclick: clearCompleted}, 'Clear completed'),
-    ]);
-  }
-
-  function viewTodo(todo:TodoItem, index){
-    var classes = '';
-    if(todo.completed) classes+= ' completed';
-    if(todo.editing) classes+= ' editing';
-
-    return m('li', {className:classes}, [
-      m('.view', [
-        m('input.toggle[type=checkbox]', {
-          onclick: complete.bind(todo),
-          checked: todo.completed,
-        }),
-        m('label', {ondblclick: edit.bind(todo)}, todo.title),
-        m('button.destroy', {onclick:remove.bind(index)}),
-      ]),
-      m('input.edit', {
-        value: todo.title,
-        onkeyup: inputWatcher(doneEditing.bind(todo, index), cancelEditing.bind(todo)),
-        oninput: setAttr('value', todo.title),
-        onblur: doneEditing.bind(todo, index),
-        config: function(el){
-          if(todo.editing){
-            el.focus();
-            el.selectionStart = el.value.length;
-          }
-        },
-
-      }),
     ]);
   }
 

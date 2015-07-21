@@ -1,9 +1,8 @@
 private typedef Prop<T> = ?T->T;
 
 private typedef Promize = Dynamic;
-private typedef Component<T> = {
-  ?controller:Void->T,
-  view:T->Node,
+private typedef Component = {
+  function view(v:Dynamic):Node;
 }
 
 abstract Node(Dynamic) from Array<Node> from String{
@@ -30,7 +29,7 @@ class Mithril{
   public static function route(el:js.html.Element, def:String, routes:Dynamic):Void;
 
   public static function prop<T>(v:T):Prop<T>;
-  public static function module(el:js.html.Element, comp:Component<Dynamic>):Void;
+  public static function module(el:js.html.Element, comp:Component):Void;
   public static function withAttr(name:String, fn:Dynamic->Void):Void->Void;
   public static function request(opts:Dynamic):Promize;
   public static function startComputation():Void;

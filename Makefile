@@ -11,7 +11,7 @@ server: bin/server.js
 bin/server.js: src/Server.hx
 	$(HAXE) -lib node -cp libs/haxetoml/src -D nodejs -D server -main Server -js bin/server.js $(CP)
 
-bin/frontend/todo.js: src/Todo.hx
+bin/frontend/todo.js: src/*.hx src/*/*.hx
 	$(HAXE) -D client -main Todo -js bin/frontend/todo.js
 
 clean:
