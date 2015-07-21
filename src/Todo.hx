@@ -71,6 +71,7 @@ class Todo{
   function completeAll(){
     var val = !allCompleted();
     for(i in list) i.completed = val;
+    save();
   }
 
   static inline var ENTER_KEY = 13;
