@@ -4,7 +4,7 @@ using StringTools;
 @:expose('Todo')
 class Todo{
   static function run(){
-    var todo = new Todo();
+    var todo = new Todo(Storage.get());
     Mithril.routeMode = 'hash';
     Mithril.route(js.Browser.document.body, '/', {
       '/':todo,
@@ -13,15 +13,18 @@ class Todo{
   }
 
   var list:Array<model.Todo>;
-  var title:String = '';
-  var filter:String;
 
-  function new(){
-    list = Storage.get();
+  function new(list){
+    this.list = list;
   }
 
+  var ctrl:{
+    filter:String,
+    title:String,
+  };
+
   function controller(){
-    return {filter: Mithril.routeParam('filter')};
+    return {filter: Mithril.routeParam('filter'), title:''};
   }
 
   public inline function save(){
@@ -29,21 +32,21 @@ class Todo{
   }
 
   function add(){
-    var title = title.trim();
+    var title = ctrl.title.trim();
     if(title != ''){
-      list.push({title:title});
+      list.push({title:title, time:Date.now().getTime(), completed:false});
       save();
     }
-    this.title = '';
+    ctrl.title = '';
   }
 
   function clearTitle(){
-    title = '';
+    ctrl.title = '';
   }
 
   public function remove(todo){
     var idx = list.indexOf(todo);
-    if(idx == -1) throw 'wtf';
+    if(idx == -1) return;
     list.splice(idx, 1);
     save();
   }
@@ -83,8 +86,9 @@ class Todo{
   }
   var focused = false;
 
-  function view(state){
-    var localList = switch state.filter{
+  function view(ctrl){
+    this.ctrl = ctrl;
+    var localList = switch ctrl.filter{
       case 'active': [for(i in list) if(!i.completed) i];
       case 'completed': [for(i in list) if(i.completed) i];
       case _: list;
@@ -95,8 +99,8 @@ class Todo{
         m('h1', 'todos'),
         m('input.new-todo[placeholder="What needs to be done?"]', {
           onkeyup: inputWatcher(add, clearTitle),
-          value: title,
-          oninput: setAttr('value', title),
+          value: ctrl.title,
+          oninput: setAttr('value', ctrl.title),
           config: function(element){
             if(!focused){
               element.focus();
@@ -112,7 +116,7 @@ class Todo{
           onclick: completeAll,
           checked: allCompleted(),
         }),
-        m('ul.todo-list', todos),
+        m('ul.todo-list', {}, todos),
       ]),
       list.length == 0 ? null : viewFooter(),
     ]);
@@ -131,17 +135,17 @@ class Todo{
       m('ul.filters',[
         m('li', m('a[href=/]', {
             config: Mithril.route,
-            className: filter == '' ? 'selected' : '',
+            className: ctrl.filter == null ? 'selected' : '',
           }, 'All')
         ),
         m('li', m('a[href=/active]', {
             config: Mithril.route,
-            className: filter == 'active' ? 'selected' : '',
+            className: ctrl.filter == 'active' ? 'selected' : '',
           }, 'Active')
         ),
         m('li', m('a[href=/completed]', {
             config: Mithril.route,
-            className: filter == 'completed' ? 'selected' : '',
+            className: ctrl.filter == 'completed' ? 'selected' : '',
           }, 'Completed')
         ),
       ]),

@@ -3,12 +3,18 @@ using StringTools;
 
 class TodoItem{
   var todo:model.Todo;
-  var title:String;
   var app:Todo;
+  public var ctrl:{
+    editing:Bool,
+    ?title:String,
+  };
   public function new(todo, app){
     this.todo = todo;
-    title = todo.title;
     this.app = app;
+  }
+
+  public function controller(){
+    return {editing: false};
   }
 
   function complete(){
@@ -16,19 +22,22 @@ class TodoItem{
     save();
   }
 
+  var editing:Bool;
   function edit(){
-    todo.editing = true;
+    ctrl.editing = true;
+    ctrl.title = todo.title;
   }
 
   function doneEditing(){
-    todo.editing = false;
-    todo.title = title = title.trim();
+    ctrl.editing = false;
+    todo.title = ctrl.title.trim();
     save();
   }
 
   function cancelEditing(){
-    todo.editing = false;
-    title = todo.title;
+    ctrl.editing = false;
+    // todo.editing = false;
+    // title = todo.title;
   }
 
   function remove(){
@@ -39,10 +48,11 @@ class TodoItem{
     app.save();
   }
 
-  public function view(){
+  public function view(ctrl){
+    this.ctrl = ctrl;
     var classes = '';
     if(todo.completed) classes+= ' completed';
-    if(todo.editing) classes+= ' editing';
+    if(ctrl.editing) classes+= ' editing';
 
     return m('li', {className:classes}, [
       m('.view', [
@@ -53,13 +63,13 @@ class TodoItem{
         m('label', {ondblclick: edit}, todo.title),
         m('button.destroy', {onclick:remove}),
       ]),
-      todo.editing ? m('input.edit', {
-        value: title,
+      ctrl.editing ? m('input.edit', {
+        value: ctrl.title,
         onkeyup: Todo.inputWatcher(doneEditing, cancelEditing),
-        oninput: setAttr('value', title),
+        oninput: setAttr('value', ctrl.title),
         onblur: doneEditing,
         config: function(el){
-          if(todo.editing){
+          if(ctrl.editing){
             el.focus();
             el.selectionStart = el.value.length;
           }
