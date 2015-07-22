@@ -1,22 +1,25 @@
 private typedef Prop<T> = ?T->T;
 
-class Comp<T:{function view():Node;}>{
-  public function new(cl:Class<T>, args:Array<Dynamic>){
-    controller = function(){
-      var o = untyped Object.create(cl.prototype);
-      untyped cl.apply(o, args);
-      return o;
-    }
+private typedef Component<D> = {
+  function new(o:D):Void;
+  function view():Node;
+}
+
+class Comp<D, T:Component<D>>{
+#if !macro
+  public function new(cl:Class<T>, arg:D){
+    controller = function() return untyped __js__('new cl')(arg);
   }
   var controller:Dynamic;
   function view(ctrl){
     return ctrl.view();
   }
+#end
 }
 
 private typedef Promize = Dynamic;
 
-abstract Node(Dynamic) from Comp<Dynamic> from String from Float from Array<Node>{
+abstract Node(Dynamic) from Comp<Dynamic, Dynamic> from String from Float from Array<Node>{
   public inline function new(v:Dynamic) this = v;
 }
 
@@ -30,8 +33,8 @@ class Mithril{
   public static macro function setAttr(name:String, expr:haxe.macro.Expr){
     return macro Mithril.withAttr($v{name}, function(v) $expr = v);
   }
-  public static macro function component(expr:haxe.macro.Expr, args:Array<haxe.macro.Expr>){
-    return macro ((new Mithril.Comp($expr, [$a{args}]):Dynamic):Mithril.Node);
+  public static macro function component<D, T:Component<D>>(expr:haxe.macro.Expr.ExprOf<Class<T>>, arg:haxe.macro.Expr.ExprOf<D>){
+    return macro (new Mithril.Comp($expr, $arg):Mithril.Node);
   }
   #if !macro
 
@@ -44,7 +47,7 @@ class Mithril{
   public static function route(el:js.html.Element, def:String, routes:Dynamic):Void;
 
   public static function prop<T>(v:T):Prop<T>;
-  public static function module(el:js.html.Element, comp:Comp<Dynamic>):Void;
+  public static function module(el:js.html.Element, comp:Comp<Dynamic, Dynamic>):Void;
   public static function withAttr(name:String, fn:Dynamic->Void):Void->Void;
   public static function request(opts:Dynamic):Promize;
   public static function startComputation():Void;

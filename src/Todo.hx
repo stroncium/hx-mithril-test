@@ -117,7 +117,7 @@ class Todo{
           onclick: completeAll,
           checked: allCompleted(),
         }),
-        m('ul.todo-list', [for(todo in localTodoList) component(TodoItem, todo, this)]),
+        m('ul.todo-list', [for(todo in localTodoList) component(TodoItem, {todo:todo, app:this})]),
       ]),
       list.length == 0 ? null : viewFooter(),
     ]);

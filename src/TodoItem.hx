@@ -6,9 +6,9 @@ class TodoItem{
   var app:Todo;
   var editing:Bool = false;
   var title:String;
-  public function new(todo, app){
-    this.todo = todo;
-    this.app = app;
+  public function new(o){
+    this.todo = o.todo;
+    this.app = o.app;
   }
 
   function complete(){
