@@ -89,12 +89,12 @@ class Todo{
 
   function view(ctrl){
     this.ctrl = ctrl;
-    var localList = switch ctrl.filter{
+    var localTodoList = switch ctrl.filter{
       case 'active': [for(i in list) if(!i.completed) i];
       case 'completed': [for(i in list) if(i.completed) i];
       case _: list;
     }
-    var todos = [for(todo in localList) new TodoItem(todo, this)];
+    var todos = ;
     return m('section.todoapp', [
       m('header.header', [
         m('h1', 'todos'),
@@ -117,7 +117,7 @@ class Todo{
           onclick: completeAll,
           checked: allCompleted(),
         }),
-        m('ul.todo-list', {}, todos),
+        m('ul.todo-list', [for(todo in localTodoList) component(TodoItem, todo, this)]),
       ]),
       list.length == 0 ? null : viewFooter(),
     ]);

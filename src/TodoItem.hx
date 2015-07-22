@@ -4,17 +4,11 @@ using StringTools;
 class TodoItem{
   var todo:model.Todo;
   var app:Todo;
-  public var ctrl:{
-    editing:Bool,
-    ?title:String,
-  };
+  var editing:Bool = false;
+  var title:String;
   public function new(todo, app){
     this.todo = todo;
     this.app = app;
-  }
-
-  public function controller(){
-    return {editing: false};
   }
 
   function complete(){
@@ -22,20 +16,25 @@ class TodoItem{
     save();
   }
 
-  var editing:Bool;
   function edit(){
-    ctrl.editing = true;
-    ctrl.title = todo.title;
+    editing = true;
+    title = todo.title;
+    if(title == null) title = '';
   }
 
   function doneEditing(){
-    ctrl.editing = false;
-    todo.title = ctrl.title.trim();
+    if(!editing) return;
+    editing = false;
+    if(title == null) return;
+    todo.title = title.trim();
+    title = null;
     save();
   }
 
   function cancelEditing(){
-    ctrl.editing = false;
+    if(!editing) return;
+    editing = false;
+    title = null;
     // todo.editing = false;
     // title = todo.title;
   }
@@ -48,11 +47,10 @@ class TodoItem{
     app.save();
   }
 
-  public function view(ctrl){
-    this.ctrl = ctrl;
+  public function view(){
     var classes = '';
     if(todo.completed) classes+= ' completed';
-    if(ctrl.editing) classes+= ' editing';
+    if(editing) classes+= ' editing';
 
     return m('li', {className:classes}, [
       m('.view', [
@@ -63,13 +61,13 @@ class TodoItem{
         m('label', {ondblclick: edit}, todo.title),
         m('button.destroy', {onclick:remove}),
       ]),
-      ctrl.editing ? m('input.edit', {
-        value: ctrl.title,
+      editing ? m('input.edit', {
+        value: title,
         onkeyup: Todo.inputWatcher(doneEditing, cancelEditing),
-        oninput: setAttr('value', ctrl.title),
+        oninput: setAttr('value', title),
         onblur: doneEditing,
         config: function(el){
-          if(ctrl.editing){
+          if(editing){
             el.focus();
             el.selectionStart = el.value.length;
           }

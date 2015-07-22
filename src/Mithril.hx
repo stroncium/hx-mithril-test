@@ -1,21 +1,23 @@
 private typedef Prop<T> = ?T->T;
 
-private typedef Promize = Dynamic;
-private typedef Component<Ctrl> = {
-  var ctrl:Ctrl;
-  function controller():Ctrl;
-  function view(ctrl:Ctrl):Node;
+class Comp<T:{function view():Node;}>{
+  public function new(cl:Class<T>, args:Array<Dynamic>){
+    controller = function(){
+      var o = untyped Object.create(cl.prototype);
+      untyped cl.apply(o, args);
+      return o;
+    }
+  }
+  var controller:Dynamic;
+  function view(ctrl){
+    return ctrl.view();
+  }
 }
 
-// interface Component<Ctrl>{
-//   var ctrl:Ctrl;
-//   function controller():Ctrl;
-//   function view(ctrl:Ctrl):Node;
-// }
+private typedef Promize = Dynamic;
 
-abstract Node(Dynamic) from String from Float from Component<Dynamic> from Array<Node>{
+abstract Node(Dynamic) from Comp<Dynamic> from String from Float from Array<Node>{
   public inline function new(v:Dynamic) this = v;
-  @:from static inline function fromArrayComponent<T:Component<Dynamic>>(arr:Array<T>):Node return new Node(arr);
 }
 
 private typedef MithrilFn = String->?Dynamic->?Node->Node;
@@ -28,6 +30,9 @@ class Mithril{
   public static macro function setAttr(name:String, expr:haxe.macro.Expr){
     return macro Mithril.withAttr($v{name}, function(v) $expr = v);
   }
+  public static macro function component(expr:haxe.macro.Expr, args:Array<haxe.macro.Expr>){
+    return macro ((new Mithril.Comp($expr, [$a{args}]):Dynamic):Mithril.Node);
+  }
   #if !macro
 
   public static inline function routeParam(name:String):Null<String> return (untyped route).param(name);
@@ -39,7 +44,7 @@ class Mithril{
   public static function route(el:js.html.Element, def:String, routes:Dynamic):Void;
 
   public static function prop<T>(v:T):Prop<T>;
-  public static function module(el:js.html.Element, comp:Component<Dynamic>):Void;
+  public static function module(el:js.html.Element, comp:Comp<Dynamic>):Void;
   public static function withAttr(name:String, fn:Dynamic->Void):Void->Void;
   public static function request(opts:Dynamic):Promize;
   public static function startComputation():Void;
